@@ -44,10 +44,10 @@ export function renderCard(card: Card, options: {
   const translationEl = el.querySelector<HTMLElement>('.card-translation')!;
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const hidden = translationEl.hidden;
-    translationEl.hidden = !hidden;
-    toggleBtn.classList.toggle('active', !hidden === false ? false : true);
-    toggleBtn.textContent = hidden ? '閉' : '訳';
+    const showing = translationEl.hidden;
+    translationEl.hidden = !showing;
+    toggleBtn.classList.toggle('active', showing);
+    toggleBtn.textContent = showing ? '閉' : '訳';
   });
 
   if (options.onClick) {
