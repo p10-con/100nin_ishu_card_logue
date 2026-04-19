@@ -675,3 +675,230 @@ h1, h2, h3 { font-family: var(--font-serif); }
 
 .howto-nodes { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: 0.82rem; color: var(--color-text-dim); }
 .howto-nodes strong { color: var(--color-text); }
+
+/* ===== Home Screen ===== */
+.home-screen {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 100px;
+  min-height: 100vh;
+  justify-content: flex-start;
+  gap: 28px;
+}
+.home-header { text-align: center; }
+.home-title {
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  color: var(--color-gold);
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.home-subtitle { font-size: 0.8rem; color: var(--color-text-muted); letter-spacing: 0.15em; }
+
+.home-body { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+
+.home-section {
+  width: 100%;
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.home-section-title {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+/* Collection */
+.collection-stats { display: flex; flex-direction: column; gap: 8px; }
+.collection-bar-wrap {
+  height: 6px;
+  background: var(--color-surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.collection-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.collection-numbers {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.collection-count { font-size: 1.2rem; font-family: var(--font-serif); color: var(--color-gold); }
+.collection-total { font-size: 0.8rem; color: var(--color-text-muted); }
+.collection-pct { font-size: 0.8rem; color: var(--color-text-dim); }
+.collection-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+}
+.coll-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+.coll-dot.collected { background: var(--color-gold); }
+.total-score {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 8px;
+}
+.total-score strong { color: var(--color-gold-light); }
+
+/* Journey Tabs */
+.dungeon-section { padding: 20px; }
+
+.journey-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+@media (max-width: 560px) {
+  .journey-tabs { grid-template-columns: repeat(2, 1fr); }
+}
+
+.journey-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: var(--font-sans);
+  color: var(--color-text-dim);
+}
+.journey-tab:hover:not(.locked) {
+  border-color: var(--tab-accent, var(--color-gold));
+  color: var(--tab-accent, var(--color-gold));
+  background: var(--color-bg-2);
+}
+.journey-tab.active {
+  border-color: var(--tab-accent, var(--color-gold));
+  background: color-mix(in srgb, var(--tab-accent, var(--color-gold)) 10%, var(--color-surface));
+  color: var(--tab-accent, var(--color-gold));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tab-accent, var(--color-gold)) 30%, transparent);
+}
+.journey-tab.locked { opacity: 0.35; cursor: not-allowed; }
+
+.journey-tab-icon { font-size: 1.6rem; line-height: 1; }
+.journey-tab-name { font-size: 0.75rem; font-family: var(--font-serif); white-space: nowrap; }
+.journey-tab-diff { font-size: 0.65rem; }
+
+/* Journey Hero */
+.journey-hero { width: 100%; border-radius: var(--radius-md); overflow: hidden; }
+.journey-hero-inner {
+  display: flex;
+  gap: 0;
+  min-height: 160px;
+  animation: heroReveal 0.3s ease;
+  border: 1px solid color-mix(in srgb, var(--hero-accent, var(--color-gold)) 35%, transparent);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+@keyframes heroReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.journey-hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 20px;
+  min-width: 110px;
+  border-right: 1px solid color-mix(in srgb, var(--hero-accent, var(--color-gold)) 20%, transparent);
+  background: color-mix(in srgb, var(--hero-accent, var(--color-gold)) 5%, transparent);
+}
+.journey-hero-icon { font-size: 3rem; line-height: 1; }
+.journey-hero-depth { text-align: center; }
+.journey-hero-depth-num {
+  display: block;
+  font-size: 1.8rem;
+  font-family: var(--font-serif);
+  color: var(--hero-accent, var(--color-gold));
+  line-height: 1;
+}
+.journey-hero-depth-label { font-size: 0.65rem; color: var(--color-text-muted); }
+
+.journey-hero-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 20px;
+}
+.journey-hero-name {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: var(--hero-accent, var(--color-gold));
+  letter-spacing: 0.08em;
+}
+.journey-hero-subtitle {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+.journey-hero-desc {
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: var(--color-text-dim);
+  flex: 1;
+}
+.journey-hero-meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 6px;
+}
+.journey-hero-diff { font-size: 0.8rem; letter-spacing: 0.05em; }
+.journey-hero-scaling { font-size: 0.75rem; color: var(--color-text-muted); }
+.journey-bonus {
+  font-size: 0.75rem;
+  color: var(--hero-accent, var(--color-gold));
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+/* Journey Start Button */
+.btn-journey {
+  border-color: var(--journey-accent, var(--color-gold));
+  color: var(--journey-accent, var(--color-gold));
+  font-size: 1.05rem;
+  padding: 12px 32px;
+  letter-spacing: 0.05em;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+.btn-journey:hover {
+  background: var(--journey-accent, var(--color-gold));
+  color: var(--color-bg);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--journey-accent, var(--color-gold)) 40%, transparent);
+}
+
+/* Home Footer */
+.home-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 20px;
+  background: linear-gradient(0deg, var(--color-bg) 65%, transparent);
+}
+.home-sub-btns { display: flex; gap: 10px; }

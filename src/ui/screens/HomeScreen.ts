@@ -5,7 +5,24 @@ import { startInitialDraft } from './DraftScreen';
 import type { DungeonDef } from '../../core/types/dungeon';
 
 const DIFF_STARS: Record<number, string> = { 1: '★☆☆☆', 2: '★★☆☆', 3: '★★★☆', 4: '★★★★' };
-const DIFF_COLOR: Record<number, string> = { 1: 'var(--color-spring)', 2: 'var(--color-gold)', 3: 'var(--color-autumn)', 4: 'var(--color-red)' };
+const DIFF_COLOR: Record<number, string> = {
+  1: 'var(--attr-spring)',
+  2: 'var(--color-gold)',
+  3: 'var(--attr-autumn)',
+  4: 'var(--color-red-bright)',
+};
+const DUNGEON_ATMOSPHERE: Record<string, string> = {
+  'hana-no-michi':    'linear-gradient(135deg, #2a1a2a 0%, #1a2a1a 40%, #2a1810 100%)',
+  'arashi-no-tabiji': 'linear-gradient(135deg, #0e1020 0%, #1a1628 40%, #0e0c08 100%)',
+  'tsukiyo-no-kyochi':'linear-gradient(135deg, #0e1020 0%, #12182a 40%, #1a1020 100%)',
+  'hyakki-no-utage':  'linear-gradient(135deg, #180808 0%, #200808 40%, #0e0c08 100%)',
+};
+const DUNGEON_ACCENT: Record<string, string> = {
+  'hana-no-michi':    'var(--attr-spring)',
+  'arashi-no-tabiji': 'var(--color-gold)',
+  'tsukiyo-no-kyochi':'var(--attr-winter)',
+  'hyakki-no-utage':  'var(--color-red-bright)',
+};
 
 export function renderHomeScreen(container: HTMLElement): void {
   const collection = getCollection();
@@ -14,7 +31,7 @@ export function renderHomeScreen(container: HTMLElement): void {
   const pct = Math.round((collectedCount / totalPoems) * 100);
   const { persistentScore } = store.getState();
 
-  let selectedDungeon: DungeonDef = DUNGEONS[1]; // デフォルト: 嵐の旅路
+  let selectedDungeon: DungeonDef = DUNGEONS[1];
 
   const render = () => {
     container.innerHTML = `
@@ -50,30 +67,32 @@ export function renderHomeScreen(container: HTMLElement): void {
 
           <!-- ダンジョン選択 -->
           <section class="home-section dungeon-section">
-            <h3 class="home-section-title">🗺️ 旅先を選ぶ</h3>
-            <div class="dungeon-list" id="dungeon-list">
+            <h3 class="home-section-title">🗺️ どの旅に出るか</h3>
+
+            <div class="journey-tabs" id="journey-tabs">
               ${DUNGEONS.map(d => `
-                <div class="dungeon-card${!d.unlocked ? ' locked' : ''}${d.id === selectedDungeon.id ? ' selected' : ''}"
-                     data-dungeon-id="${d.id}">
-                  <div class="dungeon-icon">${d.icon}</div>
-                  <div class="dungeon-info">
-                    <div class="dungeon-name">${d.name}</div>
-                    <div class="dungeon-subtitle">${d.subtitle}</div>
-                    <div class="dungeon-diff" style="color:${DIFF_COLOR[d.difficulty]}">${DIFF_STARS[d.difficulty]} ${d.difficultyLabel}</div>
-                  </div>
-                  ${!d.unlocked ? '<div class="dungeon-lock">🔒</div>' : ''}
-                </div>
+                <button class="journey-tab${d.id === selectedDungeon.id ? ' active' : ''}${!d.unlocked ? ' locked' : ''}"
+                        data-dungeon-id="${d.id}"
+                        style="--tab-accent:${DUNGEON_ACCENT[d.id] ?? 'var(--color-gold)'}">
+                  <span class="journey-tab-icon">${d.unlocked ? d.icon : '🔒'}</span>
+                  <span class="journey-tab-name">${d.name}</span>
+                  <span class="journey-tab-diff" style="color:${DIFF_COLOR[d.difficulty]}">${d.difficultyLabel}</span>
+                </button>
               `).join('')}
             </div>
-            <div class="dungeon-detail" id="dungeon-detail">
-              ${renderDungeonDetail(selectedDungeon)}
+
+            <div class="journey-hero" id="journey-hero">
+              ${renderJourneyHero(selectedDungeon)}
             </div>
           </section>
 
         </div>
 
         <div class="home-footer">
-          <button class="btn btn-large" id="btn-journey">旅に出る ➤</button>
+          <button class="btn btn-journey" id="btn-journey"
+                  style="--journey-accent:${DUNGEON_ACCENT[selectedDungeon.id] ?? 'var(--color-gold)'}">
+            ${selectedDungeon.icon} 「${selectedDungeon.name}」へ旅立つ ➤
+          </button>
           <div class="home-sub-btns">
             <button class="btn btn-sm" id="btn-saveload">セーブ / ロード</button>
             <button class="btn btn-sm" id="btn-back-title">タイトルへ</button>
@@ -86,34 +105,41 @@ export function renderHomeScreen(container: HTMLElement): void {
   };
 
   const bindEvents = () => {
-    // ダンジョン選択
-    container.querySelectorAll<HTMLElement>('.dungeon-card').forEach(el => {
+    container.querySelectorAll<HTMLElement>('.journey-tab').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.dataset.dungeonId;
         const dungeon = DUNGEONS.find(d => d.id === id);
         if (!dungeon || !dungeon.unlocked) return;
 
         selectedDungeon = dungeon;
-        container.querySelectorAll('.dungeon-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
+        container.querySelectorAll('.journey-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
 
-        const detail = container.querySelector<HTMLElement>('#dungeon-detail');
-        if (detail) detail.innerHTML = renderDungeonDetail(selectedDungeon);
+        const hero = container.querySelector<HTMLElement>('#journey-hero');
+        if (hero) {
+          hero.style.animation = 'none';
+          hero.offsetHeight; // reflow
+          hero.style.animation = '';
+          hero.innerHTML = renderJourneyHero(selectedDungeon);
+        }
+
+        const btn = container.querySelector<HTMLElement>('#btn-journey');
+        if (btn) {
+          btn.textContent = `${selectedDungeon.icon} 「${selectedDungeon.name}」へ旅立つ ➤`;
+          (btn as HTMLElement).style.setProperty('--journey-accent', DUNGEON_ACCENT[selectedDungeon.id] ?? 'var(--color-gold)');
+        }
       });
     });
 
-    // 旅に出る
     container.querySelector('#btn-journey')?.addEventListener('click', () => {
       store.setState({ runState: null, battleLog: [], selectedDungeon });
       startInitialDraft(container);
     });
 
-    // セーブ/ロード
     container.querySelector('#btn-saveload')?.addEventListener('click', () => {
       store.setState({ screen: 'save_load' });
     });
 
-    // タイトルへ
     container.querySelector('#btn-back-title')?.addEventListener('click', () => {
       store.setState({ screen: 'title' });
     });
@@ -122,16 +148,33 @@ export function renderHomeScreen(container: HTMLElement): void {
   render();
 }
 
-function renderDungeonDetail(d: DungeonDef): string {
+function renderJourneyHero(d: DungeonDef): string {
+  const accent = DUNGEON_ACCENT[d.id] ?? 'var(--color-gold)';
+  const atmosphere = DUNGEON_ATMOSPHERE[d.id] ?? 'linear-gradient(135deg, #1a1610, #0e0c08)';
   const bonusTxt = d.themeBonus
-    ? `<div class="dungeon-detail-bonus">テーマボーナス：${THEME_LABEL[d.themeBonus] ?? d.themeBonus}の句が強化される</div>`
+    ? `<div class="journey-bonus">✦ ${THEME_LABEL[d.themeBonus] ?? d.themeBonus}の句が強化される</div>`
     : '';
   return `
-    <div class="dungeon-detail-content">
-      <div class="dungeon-detail-name">${d.icon} ${d.name}</div>
-      <div class="dungeon-detail-desc">${d.description}</div>
-      ${bonusTxt}
-      <div class="dungeon-detail-info">マップ深度: ${d.mapDepth}層　／　難度倍率: ×${d.enemyScaling}</div>
+    <div class="journey-hero-inner" style="background:${atmosphere};--hero-accent:${accent}">
+      <div class="journey-hero-left">
+        <div class="journey-hero-icon">${d.icon}</div>
+        <div class="journey-hero-depth">
+          <span class="journey-hero-depth-num">${d.mapDepth}</span>
+          <span class="journey-hero-depth-label">層の旅</span>
+        </div>
+      </div>
+      <div class="journey-hero-right">
+        <div class="journey-hero-name">${d.name}</div>
+        <div class="journey-hero-subtitle">${d.subtitle}</div>
+        <div class="journey-hero-desc">${d.description}</div>
+        <div class="journey-hero-meta">
+          <span class="journey-hero-diff" style="color:${DIFF_COLOR[d.difficulty]}">
+            ${DIFF_STARS[d.difficulty]}　${d.difficultyLabel}
+          </span>
+          <span class="journey-hero-scaling">敵強度 ×${d.enemyScaling}</span>
+        </div>
+        ${bonusTxt}
+      </div>
     </div>
   `;
 }
