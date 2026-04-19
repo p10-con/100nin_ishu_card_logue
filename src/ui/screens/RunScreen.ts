@@ -3,6 +3,7 @@ import { dispatch } from '../../core/engine/GameRunner';
 import { renderBattleScreen } from './BattleScreen';
 import { renderInRunDraftScreen } from './DraftScreen';
 import { addToCollection } from '../../core/engine/SaveManager';
+import { renderCard } from '../components/CardView';
 
 const NODE_ICONS: Record<string, string> = {
   battle: '⚔️', elite: '👹', boss: '💀',
@@ -42,6 +43,14 @@ export function renderRunScreen(container: HTMLElement): void {
   }
   if (phase === 'draft' || phase === 'draft_discard') {
     renderInRunDraftScreen(container);
+    return;
+  }
+  if (phase === 'event') {
+    renderEventScreen(container);
+    return;
+  }
+  if (phase === 'shop') {
+    renderShopScreen(container);
     return;
   }
 
@@ -99,6 +108,10 @@ function renderMapScreen(container: HTMLElement, runState: NonNullable<ReturnTyp
 
           if (node.type === 'rest') {
             renderRestChoice(container);
+          } else if (node.type === 'event') {
+            renderEventScreen(container);
+          } else if (node.type === 'shop') {
+            renderShopScreen(container);
           } else {
             renderBattleScreen(container);
           }
@@ -188,6 +201,100 @@ function renderRestChoice(container: HTMLElement): void {
     const { runState } = store.getState();
     if (!runState) return;
     const result = dispatch(runState, { type: 'DRAFT_SKIP' });
+    store.setState({ runState: result.state });
+    renderRunScreen(container);
+  });
+}
+
+function renderEventScreen(container: HTMLElement): void {
+  const { runState } = store.getState();
+  if (!runState?.currentEvent) return;
+  const ev = runState.currentEvent;
+
+  container.innerHTML = `
+    <div class="screen rest-screen event-screen">
+      <div class="event-icon">📜</div>
+      <h2 class="event-title">${ev.title}</h2>
+      <p class="event-flavor">${ev.flavor}</p>
+      <div class="event-choices" id="event-choices"></div>
+    </div>
+  `;
+
+  const choicesEl = container.querySelector<HTMLElement>('#event-choices')!;
+  ev.choices.forEach((choice, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn event-choice-btn';
+    btn.innerHTML = `<span class="event-choice-label">${choice.label}</span><span class="event-choice-desc">${choice.description}</span>`;
+    btn.addEventListener('click', () => {
+      const { runState } = store.getState();
+      if (!runState) return;
+      const result = dispatch(runState, { type: 'EVENT_CHOICE', choiceIndex: i });
+      for (const r of result.events) store.addLog(r.message);
+      store.setState({ runState: result.state });
+      renderRunScreen(container);
+    });
+    choicesEl.appendChild(btn);
+  });
+}
+
+function renderShopScreen(container: HTMLElement): void {
+  const { runState } = store.getState();
+  if (!runState) return;
+
+  const deckFull = runState.deck.cards.length >= 10;
+
+  container.innerHTML = `
+    <div class="screen rest-screen shop-screen">
+      <div class="event-icon">🎋</div>
+      <h2 class="event-title">行商人の店</h2>
+      <p class="event-flavor">旅の行商人が品を広げている。「お気に召すものがあれば」</p>
+
+      <div class="shop-section">
+        <div class="shop-section-label">句の巻物 — 1首を選んでデッキに加える${deckFull ? '（1首と交換）' : ''}</div>
+        <div class="shop-cards" id="shop-cards"></div>
+      </div>
+
+      <div class="shop-section">
+        <div class="shop-section-label">薬草 — HP を 30% 回復する</div>
+        <button class="btn shop-heal-btn" id="btn-shop-heal">
+          🌿 薬草を受け取る (HP +${Math.round(runState.player.maxHp * 0.3)})
+        </button>
+      </div>
+
+      <button class="btn btn-sm" id="btn-shop-leave" style="margin-top:8px;opacity:0.6">立ち去る</button>
+    </div>
+  `;
+
+  const cardsEl = container.querySelector<HTMLElement>('#shop-cards')!;
+  for (const card of runState.shopOffers) {
+    const el = renderCard(card, {
+      onClick: (c) => {
+        const { runState } = store.getState();
+        if (!runState) return;
+        const result = dispatch(runState, { type: 'SHOP_BUY_CARD', cardId: c.id });
+        for (const r of result.events) store.addLog(r.message);
+        store.setState({ runState: result.state });
+        renderRunScreen(container);
+      },
+    });
+    el.classList.add('draft-offer-card');
+    cardsEl.appendChild(el);
+  }
+
+  container.querySelector('#btn-shop-heal')!.addEventListener('click', () => {
+    const { runState } = store.getState();
+    if (!runState) return;
+    const result = dispatch(runState, { type: 'SHOP_HEAL' });
+    for (const r of result.events) store.addLog(r.message);
+    store.setState({ runState: result.state });
+    renderRunScreen(container);
+  });
+
+  container.querySelector('#btn-shop-leave')!.addEventListener('click', () => {
+    const { runState } = store.getState();
+    if (!runState) return;
+    const result = dispatch(runState, { type: 'SHOP_LEAVE' });
+    for (const r of result.events) store.addLog(r.message);
     store.setState({ runState: result.state });
     renderRunScreen(container);
   });

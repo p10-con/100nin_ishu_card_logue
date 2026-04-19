@@ -940,6 +940,57 @@ h1, h2, h3 { font-family: var(--font-serif); }
   box-shadow: 0 0 20px color-mix(in srgb, var(--journey-accent, var(--color-gold)) 40%, transparent);
 }
 
+/* ===== Event Screen ===== */
+.event-screen { gap: 20px; max-width: 560px; width: 100%; margin: 0 auto; text-align: center; }
+.event-icon { font-size: 2.8rem; }
+.event-title { color: var(--color-gold); font-size: 1.6rem; }
+.event-flavor {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1.9;
+  color: var(--color-text-dim);
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  text-align: left;
+}
+.event-choices { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.event-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px 18px;
+  gap: 3px;
+  text-align: left;
+}
+.event-choice-label { font-size: 1rem; }
+.event-choice-desc { font-size: 0.75rem; color: var(--color-text-muted); font-family: var(--font-sans); }
+.event-choice-btn:hover .event-choice-desc { color: var(--color-bg); }
+
+/* ===== Shop Screen ===== */
+.shop-screen { gap: 20px; max-width: 760px; width: 100%; margin: 0 auto; text-align: center; }
+.shop-section {
+  width: 100%;
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.shop-section-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+  text-align: left;
+}
+.shop-cards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.shop-heal-btn { width: 100%; justify-content: center; }
+
 /* Home Footer */
 .home-footer {
   position: fixed;

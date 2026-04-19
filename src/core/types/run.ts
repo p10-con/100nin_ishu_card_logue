@@ -47,9 +47,12 @@ export interface RunState {
   phase: RunPhase;
   score: number;
   // ドラフト関連
-  draftOffers: Card[];          // 現在提示中のカード候補
-  draftOffersCount: number;     // 何枚から選ぶか（将来の拡張用）
-  pendingDraftCard: Card | null; // 10枚満の時、捨て選択待ちのカード
+  draftOffers: Card[];
+  draftOffersCount: number;
+  pendingDraftCard: Card | null;
+  // 店・出来事
+  shopOffers: Card[];
+  currentEvent: RunEventDef | null;
 }
 
 export type RunPhase =
@@ -58,8 +61,24 @@ export type RunPhase =
   | 'player_turn'
   | 'enemy_turn'
   | 'battle_end'
-  | 'draft'          // ステージクリア後ドラフト（デッキ < 10）
-  | 'draft_discard'  // デッキ満杯時、捨てるカードを選ぶ
+  | 'draft'
+  | 'draft_discard'
+  | 'event'
+  | 'shop'
   | 'reward'
   | 'game_over'
   | 'run_complete';
+
+export interface RunEventDef {
+  id: string;
+  title: string;
+  flavor: string;
+  choices: RunEventChoice[];
+}
+
+export interface RunEventChoice {
+  label: string;
+  effect: 'heal' | 'damage' | 'add_card' | 'nothing' | 'gamble';
+  value?: number;
+  description: string;
+}
