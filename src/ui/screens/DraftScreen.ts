@@ -84,7 +84,8 @@ function pickInitialCard(card: Card, container: HTMLElement): void {
   if (newRoundsDone >= initialDraft.roundsTotal) {
     // 全ラウンド完了 → ラン開始
     store.setState({ initialDraft: null });
-    const run = createRun(newDraftedCards);
+    const { playerProfile } = store.getState();
+    const run = createRun(newDraftedCards, playerProfile ?? undefined);
     store.setState({ runState: run, battleLog: [], screen: 'run' });
     renderRunScreen(container);
   } else {
@@ -116,7 +117,7 @@ export function renderInRunDraftScreen(container: HTMLElement): void {
     <div class="screen draft-screen">
       <div class="draft-header">
         ${isDiscard
-          ? `<div class="draft-round-badge discard">デッキ満杯 (${deck.cards.length}/${10})</div>
+          ? `<div class="draft-round-badge discard">デッキ満杯 (${deck.cards.length}/${runState.deckCapacity})</div>
              <h2>捨てる句を選べ</h2>
              <p class="draft-hint">1枚を手放すことで新しい句が加わる</p>`
           : `<div class="draft-round-badge">ステージクリア</div>

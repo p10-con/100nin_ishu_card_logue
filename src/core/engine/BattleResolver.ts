@@ -2,6 +2,8 @@ import type { Card, Attribute } from '../types/card';
 import type { Enemy } from '../types/run';
 import type { PlayerStats } from '../types/player';
 import type { Deck } from '../types/deck';
+import type { UpgradeId } from '../types/profile';
+import { getAttributeMultiplier } from './UpgradeCatalog';
 
 // 将来の属性相性テーブル（現在未使用）
 export const ATTRIBUTE_BONUS: Partial<Record<Attribute, Attribute[]>> = {
@@ -24,7 +26,8 @@ export function resolveCardPlay(
   card: Card,
   player: PlayerStats,
   enemy: Enemy,
-  deck: Deck
+  deck: Deck,
+  upgradeLevels: Partial<Record<UpgradeId, number>> = {},
 ): PlayResult {
   let attack = card.stats.attack;
   let defense = card.stats.defense;
@@ -40,8 +43,8 @@ export function resolveCardPlay(
     }
   }
 
-  // 属性相性ボーナス（将来: 敵の弱点属性と照合）
-  const attributeMultiplier = 1.0;
+  // 属性習熟ボーナス（プロファイルから）
+  const attributeMultiplier = getAttributeMultiplier(upgradeLevels, card.primaryAttribute as import('../types/poem').Theme);
 
   // プレイヤーステータスボーナス
   const eleganceBonus = Math.floor(player.elegance / 20);

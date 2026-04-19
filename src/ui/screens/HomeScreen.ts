@@ -3,6 +3,7 @@ import { DUNGEONS } from '../../data/dungeons/dungeons';
 import { getCollection } from '../../core/engine/SaveManager';
 import { startInitialDraft } from './DraftScreen';
 import type { DungeonDef } from '../../core/types/dungeon';
+import { getAvailablePoints } from '../../core/types/profile';
 
 const DIFF_STARS: Record<number, string> = { 1: '★☆☆☆', 2: '★★☆☆', 3: '★★★☆', 4: '★★★★' };
 const DIFF_COLOR: Record<number, string> = {
@@ -29,7 +30,8 @@ export function renderHomeScreen(container: HTMLElement): void {
   const collectedCount = collection.size;
   const totalPoems = 100;
   const pct = Math.round((collectedCount / totalPoems) * 100);
-  const { persistentScore } = store.getState();
+  const { persistentScore, playerProfile } = store.getState();
+  const availablePoints = playerProfile ? getAvailablePoints(playerProfile) : 0;
 
   let selectedDungeon: DungeonDef = DUNGEONS[1];
 
@@ -62,7 +64,10 @@ export function renderHomeScreen(container: HTMLElement): void {
                 }).join('')}
               </div>
             </div>
-            <div class="total-score">累計スコア: <strong>${persistentScore}</strong></div>
+            <div class="total-score">
+              累計スコア: <strong>${persistentScore}</strong>
+              　強化P: <strong class="upgrade-point-badge">${availablePoints}</strong>
+            </div>
           </section>
 
           <!-- ダンジョン選択 -->
@@ -94,6 +99,7 @@ export function renderHomeScreen(container: HTMLElement): void {
             ${selectedDungeon.icon} 「${selectedDungeon.name}」へ旅立つ ➤
           </button>
           <div class="home-sub-btns">
+            <button class="btn btn-sm" id="btn-upgrade">✦ 強化${availablePoints > 0 ? ` (${availablePoints}P)` : ''}</button>
             <button class="btn btn-sm" id="btn-saveload">セーブ / ロード</button>
             <button class="btn btn-sm" id="btn-back-title">タイトルへ</button>
           </div>
@@ -134,6 +140,10 @@ export function renderHomeScreen(container: HTMLElement): void {
     container.querySelector('#btn-journey')?.addEventListener('click', () => {
       store.setState({ runState: null, battleLog: [], selectedDungeon });
       startInitialDraft(container);
+    });
+
+    container.querySelector('#btn-upgrade')?.addEventListener('click', () => {
+      store.setState({ screen: 'upgrade' });
     });
 
     container.querySelector('#btn-saveload')?.addEventListener('click', () => {

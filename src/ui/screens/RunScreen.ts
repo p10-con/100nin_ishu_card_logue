@@ -4,6 +4,7 @@ import { renderBattleScreen } from './BattleScreen';
 import { renderInRunDraftScreen } from './DraftScreen';
 import { addToCollection } from '../../core/engine/SaveManager';
 import { renderCard } from '../components/CardView';
+import { awardPointsFromRun, saveProfile } from '../../core/engine/ProfileManager';
 
 const NODE_ICONS: Record<string, string> = {
   battle: '⚔️', elite: '👹', boss: '💀',
@@ -310,8 +311,14 @@ function saveCollectionFromRun(): void {
 
 function renderGameOver(container: HTMLElement, score: number): void {
   saveCollectionFromRun();
-  const { persistentScore } = store.getState();
+  const { persistentScore, playerProfile } = store.getState();
   const newTotal = persistentScore + score;
+
+  if (playerProfile) {
+    const updated = awardPointsFromRun(playerProfile, score, false);
+    saveProfile(updated);
+    store.setState({ playerProfile: updated });
+  }
 
   container.innerHTML = `
     <div class="screen result-screen game-over">
@@ -333,8 +340,14 @@ function renderGameOver(container: HTMLElement, score: number): void {
 
 function renderRunComplete(container: HTMLElement, score: number): void {
   saveCollectionFromRun();
-  const { persistentScore } = store.getState();
-  const newTotal = persistentScore + score + 200; // クリアボーナス
+  const { persistentScore, playerProfile } = store.getState();
+  const newTotal = persistentScore + score + 200;
+
+  if (playerProfile) {
+    const updated = awardPointsFromRun(playerProfile, score + 200, true);
+    saveProfile(updated);
+    store.setState({ playerProfile: updated });
+  }
 
   container.innerHTML = `
     <div class="screen result-screen run-complete">

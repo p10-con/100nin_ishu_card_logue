@@ -1,6 +1,7 @@
 import type { RunState } from '../core/types/run';
 import type { Card } from '../core/types/card';
 import type { DungeonDef } from '../core/types/dungeon';
+import type { PlayerProfile } from '../core/types/profile';
 
 // ゲーム開始前の初期ドラフト状態
 export interface InitialDraftState {
@@ -11,7 +12,7 @@ export interface InitialDraftState {
   draftedCards: Card[];     // 選択済みカード
 }
 
-export type GameScreen = 'title' | 'home' | 'initial_draft' | 'run' | 'save_load';
+export type GameScreen = 'title' | 'home' | 'initial_draft' | 'run' | 'save_load' | 'upgrade';
 
 export interface GameStoreState {
   screen: GameScreen;
@@ -19,7 +20,8 @@ export interface GameStoreState {
   runState: RunState | null;
   battleLog: string[];
   persistentScore: number;
-  selectedDungeon: DungeonDef | null;  // 選択中のダンジョン
+  selectedDungeon: DungeonDef | null;
+  playerProfile: PlayerProfile | null;
 }
 
 type Listener = () => void;
@@ -32,6 +34,7 @@ class GameStore {
     battleLog: [],
     persistentScore: 0,
     selectedDungeon: null,
+    playerProfile: null,
   };
 
   private listeners: Set<Listener> = new Set();

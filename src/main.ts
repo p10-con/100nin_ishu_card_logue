@@ -6,8 +6,13 @@ import { renderHomeScreen } from './ui/screens/HomeScreen';
 import { renderInitialDraftScreen } from './ui/screens/DraftScreen';
 import { renderRunScreen } from './ui/screens/RunScreen';
 import { renderSaveLoadScreen } from './ui/screens/SaveLoadScreen';
+import { renderUpgradeScreen } from './ui/screens/UpgradeScreen';
+import { loadProfile } from './core/engine/ProfileManager';
 
 const app = document.querySelector<HTMLElement>('#app')!;
+
+// 起動時にプロファイルをロード
+store.setState({ playerProfile: loadProfile() });
 
 let currentScreen: GameScreen | null = null;
 
@@ -31,6 +36,9 @@ function render(): void {
       break;
     case 'save_load':
       renderSaveLoadScreen(app);
+      break;
+    case 'upgrade':
+      renderUpgradeScreen(app);
       break;
     default:
       renderTitleScreen(app);

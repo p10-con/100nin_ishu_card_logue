@@ -1,12 +1,13 @@
 import type { RunState, RunNode, NodeType, RunEventDef } from '../types/run';
 import type { Card } from '../types/card';
-import { MAX_DECK_SIZE, DEFAULT_DRAFT_OFFERS } from '../types/run';
+import type { PlayerProfile } from '../types/profile';
+import { DEFAULT_DRAFT_OFFERS } from '../types/run';
+import { getDeckCapacity, getSensitivityLimit, getHandSize } from './UpgradeCatalog';
 import { createInitialPlayerStats } from '../types/player';
 import { resolveCardPlay, randomEnemy, randomElite, randomBoss } from './BattleResolver';
 import { buildDeck } from './DeckAnalyzer';
 import { getCardDb } from './CardFactory';
 
-const HAND_SIZE = 4;
 const MAP_DEPTH = 7;
 const MAP_WIDTH = 3;
 
@@ -109,7 +110,7 @@ export function generateDraftOffers(currentCards: Card[], count: number = DEFAUL
   return shuffle(available).slice(0, count);
 }
 
-export function createRun(initialCards: Card[]): RunState {
+export function createRun(initialCards: Card[], profile?: PlayerProfile): RunState {
   const deck = buildDeck('run-deck', initialCards);
   const player = createInitialPlayerStats();
 
@@ -127,6 +128,7 @@ export function createRun(initialCards: Card[]): RunState {
   player.currentHp = player.maxHp;
 
   const map = generateMap();
+  const upgradeLevels = profile?.upgradeLevels ?? {};
 
   return {
     runId: `run-${Date.now()}`,
@@ -146,6 +148,11 @@ export function createRun(initialCards: Card[]): RunState {
     pendingDraftCard: null,
     shopOffers: [],
     currentEvent: null,
+    deckCapacity: getDeckCapacity(upgradeLevels),
+    handSize: getHandSize(upgradeLevels),
+    sensitivityLimit: getSensitivityLimit(upgradeLevels),
+    upgradeLevels,
+    pointsAwarded: false,
   };
 }
 
@@ -215,7 +222,7 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
           : randomEnemy(depth);
 
         next = { ...next, enemy, phase: 'battle_start', turn: 0 };
-        next = drawCards(next, HAND_SIZE);
+        next = drawCards(next, state.handSize);
         next = { ...next, phase: 'player_turn' };
         events.push({ type: 'BATTLE_START', message: `${enemy.name}が現れた！` });
       } else if (node.type === 'rest') {
@@ -245,7 +252,7 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
       const card = state.hand[cardIdx];
 
       // エネルギーチェック（簡略化：現在は1ターンMAX_ENERGY_CARDS枚まで）
-      const result = resolveCardPlay(card, state.player, state.enemy, state.deck);
+      const result = resolveCardPlay(card, state.player, state.enemy, state.deck, state.upgradeLevels);
 
       const newEnemyHp = Math.max(0, state.enemy.hp - result.damageDealt);
       const newPlayerDefense = state.player.defense + result.defenseGained;
@@ -316,7 +323,7 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
 
       // 新しいターン開始
       let next: RunState = { ...state, player, turn: state.turn + 1 };
-      next = drawCards(next, HAND_SIZE - next.hand.length);
+      next = drawCards(next, state.handSize - next.hand.length);
       next = { ...next, phase: 'player_turn' };
 
       return { state: next, events };
@@ -361,7 +368,16 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
       const picked = state.draftOffers.find(c => c.id === action.cardId);
       if (!picked) return { state, events };
 
-      if (state.deck.cards.length >= MAX_DECK_SIZE) {
+      // 感受性チェック
+      const currentEnergy = state.deck.cards.reduce((s, c) => s + c.stats.energy, 0);
+      if (currentEnergy + picked.stats.energy > state.sensitivityLimit) {
+        return {
+          state,
+          events: [{ type: 'SENSITIVITY_EXCEEDED', message: `感受性が足りない。この句（コスト${picked.stats.energy}）は受け入れられない。` }],
+        };
+      }
+
+      if (state.deck.cards.length >= state.deckCapacity) {
         // デッキ満杯 → 捨て選択フェーズへ
         return {
           state: { ...state, phase: 'draft_discard', pendingDraftCard: picked },
@@ -434,7 +450,7 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
         events.push({ type: 'EVENT_DAMAGE', message: `HP が ${choice.value} 減った。` });
       } else if (choice.effect === 'add_card') {
         const [newCard] = generateDraftOffers(state.deck.cards, 1);
-        if (newCard && state.deck.cards.length < MAX_DECK_SIZE) {
+        if (newCard && state.deck.cards.length < state.deckCapacity) {
           const newCards = [...state.deck.cards, newCard];
           const newDeck = buildDeck('run-deck', newCards);
           events.push({ type: 'CARD_ADDED', message: `「${newCard.poem.upper.slice(0, 8)}…」をデッキに加えた。` });
@@ -466,7 +482,7 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
       if (!card) return { state, events };
 
       const clearedMap = clearCurrentNode(state);
-      if (state.deck.cards.length >= MAX_DECK_SIZE) {
+      if (state.deck.cards.length >= state.deckCapacity) {
         return {
           state: { ...state, phase: 'draft_discard', pendingDraftCard: card, shopOffers: [] },
           events: [{ type: 'DRAFT_DISCARD_NEEDED', message: 'デッキが満杯。捨てる句を選べ。' }],

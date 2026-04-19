@@ -1003,3 +1003,116 @@ h1, h2, h3 { font-family: var(--font-serif); }
   background: linear-gradient(0deg, var(--color-bg) 65%, transparent);
 }
 .home-sub-btns { display: flex; gap: 10px; }
+
+/* ===== Upgrade Screen ===== */
+.upgrade-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.upgrade-header {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+  flex-shrink: 0;
+}
+.upgrade-header h2 {
+  font-family: var(--font-serif);
+  color: var(--color-gold);
+  font-size: 1.4rem;
+  margin: 0 0 8px;
+}
+.upgrade-points-display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid var(--color-gold);
+  border-radius: 20px;
+  padding: 4px 16px;
+  margin-bottom: 6px;
+}
+.upgrade-points-label { font-size: 0.8rem; color: var(--color-text-dim); }
+.upgrade-points-value { font-size: 1.5rem; font-weight: 700; color: var(--color-gold); }
+.upgrade-stats-sub { font-size: 0.75rem; color: var(--color-text-dim); }
+
+.upgrade-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.upgrade-category-title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--color-text-dim);
+  margin: 0 0 10px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 6px;
+}
+.upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+.upgrade-grid-attr {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.upgrade-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  transition: border-color 0.2s;
+}
+.upgrade-card:hover { border-color: var(--color-gold); }
+.upgrade-card.maxed { opacity: 0.55; }
+.upgrade-card-icon { font-size: 1.6rem; flex-shrink: 0; }
+.upgrade-card-body { flex: 1; min-width: 0; }
+.upgrade-card-name { font-size: 0.85rem; font-weight: 600; color: var(--color-text); margin-bottom: 2px; }
+.upgrade-card-effect { font-size: 0.8rem; color: var(--color-gold); }
+.upgrade-card-next { font-size: 0.72rem; color: var(--color-text-dim); margin-top: 2px; }
+.upgrade-level-text { font-size: 0.7rem; color: var(--color-text-dim); margin-top: 4px; }
+.upgrade-progress-wrap {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.upgrade-progress-bar {
+  height: 100%;
+  background: var(--color-gold);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.upgrade-card-action { flex-shrink: 0; }
+.upgrade-btn { font-size: 0.75rem; padding: 5px 10px; white-space: nowrap; }
+.upgrade-cost { color: var(--color-gold); font-weight: 700; }
+.upgrade-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+.upgrade-maxed-badge {
+  font-size: 0.7rem;
+  color: var(--color-gold);
+  border: 1px solid var(--color-gold);
+  border-radius: 6px;
+  padding: 2px 6px;
+  opacity: 0.6;
+}
+.upgrade-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 20px;
+  background: linear-gradient(0deg, var(--color-bg) 70%, transparent);
+  display: flex;
+  justify-content: center;
+}
+.upgrade-point-badge {
+  color: var(--color-gold);
+  font-weight: 700;
+}

@@ -1,6 +1,7 @@
 import type { Card } from './card';
 import type { Deck } from './deck';
 import type { PlayerStats } from './player';
+import type { UpgradeId } from './profile';
 
 export type NodeType = 'battle' | 'elite' | 'boss' | 'rest' | 'shop' | 'event';
 
@@ -30,8 +31,7 @@ export interface EnemyIntent {
   description: string;
 }
 
-export const MAX_DECK_SIZE = 10;
-export const DEFAULT_DRAFT_OFFERS = 3; // ゆくゆくは遺物等で4,5に増加可能
+export const DEFAULT_DRAFT_OFFERS = 3;
 
 export interface RunState {
   runId: string;
@@ -53,6 +53,12 @@ export interface RunState {
   // 店・出来事
   shopOffers: Card[];
   currentEvent: RunEventDef | null;
+  // プロファイル由来の固定値（ラン開始時にスナップショット）
+  deckCapacity: number;
+  handSize: number;
+  sensitivityLimit: number;
+  upgradeLevels: Partial<Record<UpgradeId, number>>;
+  pointsAwarded: boolean;
 }
 
 export type RunPhase =
