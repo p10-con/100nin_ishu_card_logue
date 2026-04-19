@@ -32,8 +32,8 @@ const BASE_UPGRADES: UpgradeDef[] = [
     category: 'deck',
     maxLevel: 5,
     cost: (lv) => 3 * (lv + 1),
-    effectValue: (lv) => 10 + lv,
-    effectLabel: (lv) => `最大 ${10 + lv} 首まで`,
+    effectValue: (lv) => 3 + lv,
+    effectLabel: (lv) => `最大 ${3 + lv} 首まで`,
   },
   {
     id: 'sensitivity',
@@ -52,8 +52,8 @@ const BASE_UPGRADES: UpgradeDef[] = [
     category: 'combat',
     maxLevel: 3,
     cost: (lv) => 5 * (lv + 1),
-    effectValue: (lv) => 4 + lv,
-    effectLabel: (lv) => `1ターン ${4 + lv} 枚詠める`,
+    effectValue: (lv) => 2 + lv,
+    effectLabel: (lv) => `1ターン ${2 + lv} 枚詠める`,
   },
 ];
 
@@ -75,7 +75,7 @@ export function getUpgradeDef(id: UpgradeId): UpgradeDef | undefined {
 }
 
 export function getDeckCapacity(upgradeLevels: Partial<Record<UpgradeId, number>>): number {
-  return 10 + (upgradeLevels['deck_capacity'] ?? 0);
+  return 3 + (upgradeLevels['deck_capacity'] ?? 0);
 }
 
 export function getSensitivityLimit(upgradeLevels: Partial<Record<UpgradeId, number>>): number {
@@ -83,7 +83,7 @@ export function getSensitivityLimit(upgradeLevels: Partial<Record<UpgradeId, num
 }
 
 export function getHandSize(upgradeLevels: Partial<Record<UpgradeId, number>>): number {
-  return 4 + (upgradeLevels['chaining_speed'] ?? 0);
+  return 2 + (upgradeLevels['chaining_speed'] ?? 0);
 }
 
 export function getAttributeMultiplier(
