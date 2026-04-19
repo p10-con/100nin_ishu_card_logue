@@ -131,21 +131,20 @@ function renderAfterBattle(container: HTMLElement): void {
   if (!runState) return;
 
   const deckSize = runState.deck.cards.length;
-  const canDraft = true; // 常にドラフト可能
+  const deckCapacity = runState.deckCapacity;
+  const isFull = deckSize >= deckCapacity;
 
   container.innerHTML = `
     <div class="screen rest-screen">
       <h2>⚔️ 勝利</h2>
       <p style="color:var(--color-text-dim)">
         HP: ${runState.player.currentHp} / ${runState.player.maxHp}　／
-        デッキ: ${deckSize}/10首
+        デッキ: ${deckSize}/${deckCapacity}首
       </p>
       <div style="display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:8px">
-        ${canDraft ? `
-          <button class="btn" id="btn-draft">
-            🎴 新しい句を選ぶ${deckSize >= 10 ? '（1首と交換）' : `（${deckSize + 1}首目）`}
-          </button>
-        ` : ''}
+        <button class="btn" id="btn-draft">
+          🎴 新しい句を選ぶ${isFull ? '（1首と交換）' : `（${deckSize + 1}首目）`}
+        </button>
         <button class="btn btn-sm" id="btn-skip">そのまま進む</button>
       </div>
     </div>

@@ -484,7 +484,7 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
       const clearedMap = clearCurrentNode(state);
       if (state.deck.cards.length >= state.deckCapacity) {
         return {
-          state: { ...state, phase: 'draft_discard', pendingDraftCard: card, shopOffers: [] },
+          state: { ...clearedMap, phase: 'draft_discard', pendingDraftCard: card, shopOffers: [] },
           events: [{ type: 'DRAFT_DISCARD_NEEDED', message: 'デッキが満杯。捨てる句を選べ。' }],
         };
       }
