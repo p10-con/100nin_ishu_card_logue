@@ -1,6 +1,7 @@
 import type { Card } from '../../core/types/card';
 import { store, type InitialDraftState } from '../../store/GameStore';
 import { generateDraftOffers, createRun, dispatch } from '../../core/engine/GameRunner';
+import { getInitialDeckSize } from '../../core/engine/UpgradeCatalog';
 import { getCardDb } from '../../core/engine/CardFactory';
 import { renderCard } from '../components/CardView';
 import { renderRunScreen } from './RunScreen';
@@ -9,7 +10,8 @@ import { renderRunScreen } from './RunScreen';
 
 export function startInitialDraft(container: HTMLElement): void {
   getCardDb(); // 初期化
-  const ROUNDS_TOTAL = 3;
+  const { playerProfile } = store.getState();
+  const ROUNDS_TOTAL = getInitialDeckSize(playerProfile?.upgradeLevels ?? {});
   const OFFERS_COUNT = 3;
 
   const initialState: InitialDraftState = {

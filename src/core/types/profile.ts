@@ -2,6 +2,7 @@ import type { Theme } from './poem';
 
 export type UpgradeId =
   | 'deck_capacity'
+  | 'initial_deck_size'
   | 'chaining_speed'
   | 'sensitivity'
   | `attr_${Theme}`;

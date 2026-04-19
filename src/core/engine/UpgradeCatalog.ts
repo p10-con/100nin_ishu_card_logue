@@ -26,6 +26,16 @@ const THEME_ICONS: Record<Theme, string> = {
 
 const BASE_UPGRADES: UpgradeDef[] = [
   {
+    id: 'initial_deck_size',
+    name: '初期デッキ枚数',
+    icon: '🎴',
+    category: 'deck',
+    maxLevel: 5,
+    cost: (lv) => 2 * (lv + 1),
+    effectValue: (lv) => 2 + lv,
+    effectLabel: (lv) => `スタート時 ${2 + lv} 首`,
+  },
+  {
     id: 'deck_capacity',
     name: 'デッキ容量',
     icon: '📚',
@@ -72,6 +82,10 @@ export const UPGRADES: UpgradeDef[] = [...BASE_UPGRADES, ...ATTRIBUTE_UPGRADES];
 
 export function getUpgradeDef(id: UpgradeId): UpgradeDef | undefined {
   return UPGRADES.find(u => u.id === id);
+}
+
+export function getInitialDeckSize(upgradeLevels: Partial<Record<UpgradeId, number>>): number {
+  return 2 + (upgradeLevels['initial_deck_size'] ?? 0);
 }
 
 export function getDeckCapacity(upgradeLevels: Partial<Record<UpgradeId, number>>): number {
