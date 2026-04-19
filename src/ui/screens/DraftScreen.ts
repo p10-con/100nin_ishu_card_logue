@@ -111,32 +111,33 @@ export function renderInRunDraftScreen(container: HTMLElement): void {
   const { runState } = store.getState();
   if (!runState) return;
 
-  const { draftOffers, deck, phase } = runState;
-  const isDiscard = phase === 'draft_discard';
-  const cards = isDiscard ? deck.cards : draftOffers;
+  if (runState.phase === 'draft') {
+    renderOfferStep(container);
+  } else {
+    renderDiscardStep(container, null);
+  }
+}
+
+// Step 1: 加える句を選ぶ
+function renderOfferStep(container: HTMLElement): void {
+  const { runState } = store.getState();
+  if (!runState) return;
+  const { draftOffers, deck, deckCapacity } = runState;
+  const isFull = deck.cards.length >= deckCapacity;
 
   container.innerHTML = `
     <div class="screen draft-screen">
       <div class="draft-header">
-        ${isDiscard
-          ? `<div class="draft-round-badge discard">デッキ満杯 (${deck.cards.length}/${runState.deckCapacity})</div>
-             <h2>捨てる句を選べ</h2>
-             <p class="draft-hint">1枚を手放すことで新しい句が加わる</p>`
-          : `<div class="draft-round-badge">ステージクリア</div>
-             <h2>句を選べ</h2>
-             <p class="draft-hint">${draftOffers.length}枚の中から1枚を選んでデッキに加える</p>`
-        }
+        <div class="draft-round-badge">ステージクリア</div>
+        <h2>句を選べ</h2>
+        <p class="draft-hint">
+          ${isFull
+            ? `デッキ満杯（${deck.cards.length}/${deckCapacity}）— 選んだ句と1首を交換`
+            : `${draftOffers.length}枚の中から1枚を選んでデッキに加える（${deck.cards.length}/${deckCapacity}）`
+          }
+        </p>
       </div>
-
       <div class="draft-offers" id="draft-offers"></div>
-
-      ${isDiscard && runState.pendingDraftCard ? `
-        <div class="draft-pending-card">
-          <div class="draft-deck-label">加わる句</div>
-          <div id="pending-card-wrap"></div>
-        </div>
-      ` : ''}
-
       <div style="text-align:center;margin-top:16px">
         <button class="btn btn-sm" id="btn-draft-skip" style="opacity:0.6">スキップ</button>
       </div>
@@ -144,26 +145,10 @@ export function renderInRunDraftScreen(container: HTMLElement): void {
   `;
 
   const offersEl = container.querySelector<HTMLElement>('#draft-offers')!;
-  for (const card of cards) {
-    const el = renderCard(card, {
-      onClick: (c) => {
-        if (isDiscard) {
-          pickDiscard(c, container);
-        } else {
-          pickInRunCard(c, container);
-        }
-      },
-    });
+  for (const card of draftOffers) {
+    const el = renderCard(card, { onClick: (c) => pickInRunCard(c, container) });
     el.classList.add('draft-offer-card');
     offersEl.appendChild(el);
-  }
-
-  // 加わる句のプレビュー
-  const pendingWrap = container.querySelector<HTMLElement>('#pending-card-wrap');
-  if (pendingWrap && runState.pendingDraftCard) {
-    const el = renderCard(runState.pendingDraftCard);
-    el.style.pointerEvents = 'none';
-    pendingWrap.appendChild(el);
   }
 
   container.querySelector('#btn-draft-skip')!.addEventListener('click', () => {
@@ -176,6 +161,106 @@ export function renderInRunDraftScreen(container: HTMLElement): void {
   });
 }
 
+// Step 2: 外す句を選ぶ / Step 3: 確認
+function renderDiscardStep(container: HTMLElement, selectedForDiscard: Card | null): void {
+  const { runState } = store.getState();
+  if (!runState || !runState.pendingDraftCard) return;
+  const { deck, pendingDraftCard } = runState;
+
+  if (selectedForDiscard) {
+    // Step 3: 確認画面
+    container.innerHTML = `
+      <div class="screen draft-screen">
+        <div class="draft-header">
+          <div class="draft-round-badge discard">交換の確認</div>
+          <h2>この交換でよいですか？</h2>
+        </div>
+        <div class="swap-confirm-wrap">
+          <div class="swap-confirm-col">
+            <div class="swap-confirm-label swap-add-label">✦ デッキに加える</div>
+            <div id="swap-add-wrap"></div>
+          </div>
+          <div class="swap-confirm-arrow">⇄</div>
+          <div class="swap-confirm-col">
+            <div class="swap-confirm-label swap-remove-label">✕ デッキから外す</div>
+            <div id="swap-remove-wrap"></div>
+          </div>
+        </div>
+        <div class="swap-confirm-btns">
+          <button class="btn" id="btn-swap-confirm">確定する</button>
+          <button class="btn btn-sm" id="btn-swap-back" style="opacity:0.7">戻る</button>
+        </div>
+      </div>
+    `;
+
+    const addWrap = container.querySelector<HTMLElement>('#swap-add-wrap')!;
+    const addEl = renderCard(pendingDraftCard);
+    addEl.style.pointerEvents = 'none';
+    addWrap.appendChild(addEl);
+
+    const removeWrap = container.querySelector<HTMLElement>('#swap-remove-wrap')!;
+    const removeEl = renderCard(selectedForDiscard);
+    removeEl.style.pointerEvents = 'none';
+    removeWrap.appendChild(removeEl);
+
+    container.querySelector('#btn-swap-confirm')!.addEventListener('click', () => {
+      const { runState } = store.getState();
+      if (!runState) return;
+      const result = dispatch(runState, { type: 'DRAFT_DISCARD', cardId: selectedForDiscard.id });
+      for (const ev of result.events) store.addLog(ev.message);
+      store.setState({ runState: result.state });
+      renderRunScreen(container);
+    });
+
+    container.querySelector('#btn-swap-back')!.addEventListener('click', () => {
+      renderDiscardStep(container, null);
+    });
+
+  } else {
+    // Step 2: 外す句を選ぶ
+    container.innerHTML = `
+      <div class="screen draft-screen">
+        <div class="draft-header">
+          <div class="draft-round-badge discard">交換 — デッキ (${deck.cards.length}/${runState.deckCapacity})</div>
+          <h2>外す句を選べ</h2>
+          <p class="draft-hint">1枚を選んで手放し、新しい句と入れ替える</p>
+        </div>
+        <div class="draft-swap-pending">
+          <div class="swap-pending-label">加わる句</div>
+          <div id="pending-card-wrap"></div>
+        </div>
+        <div class="draft-offers" id="draft-offers"></div>
+        <div style="text-align:center;margin-top:16px">
+          <button class="btn btn-sm" id="btn-draft-skip" style="opacity:0.6">交換をやめる</button>
+        </div>
+      </div>
+    `;
+
+    const pendingWrap = container.querySelector<HTMLElement>('#pending-card-wrap')!;
+    const pendingEl = renderCard(pendingDraftCard);
+    pendingEl.style.pointerEvents = 'none';
+    pendingWrap.appendChild(pendingEl);
+
+    const offersEl = container.querySelector<HTMLElement>('#draft-offers')!;
+    for (const card of deck.cards) {
+      const el = renderCard(card, {
+        onClick: (c) => renderDiscardStep(container, c),
+      });
+      el.classList.add('draft-offer-card');
+      offersEl.appendChild(el);
+    }
+
+    container.querySelector('#btn-draft-skip')!.addEventListener('click', () => {
+      const { runState } = store.getState();
+      if (!runState) return;
+      const result = dispatch(runState, { type: 'DRAFT_SKIP' });
+      for (const ev of result.events) store.addLog(ev.message);
+      store.setState({ runState: result.state });
+      renderRunScreen(container);
+    });
+  }
+}
+
 function pickInRunCard(card: Card, container: HTMLElement): void {
   const { runState } = store.getState();
   if (!runState) return;
@@ -184,17 +269,8 @@ function pickInRunCard(card: Card, container: HTMLElement): void {
   store.setState({ runState: result.state });
 
   if (result.state.phase === 'draft_discard') {
-    renderInRunDraftScreen(container); // 捨て選択へ
+    renderDiscardStep(container, null);
   } else {
     renderRunScreen(container);
   }
-}
-
-function pickDiscard(card: Card, container: HTMLElement): void {
-  const { runState } = store.getState();
-  if (!runState) return;
-  const result = dispatch(runState, { type: 'DRAFT_DISCARD', cardId: card.id });
-  for (const ev of result.events) store.addLog(ev.message);
-  store.setState({ runState: result.state });
-  renderRunScreen(container);
 }

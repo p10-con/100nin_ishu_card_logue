@@ -368,20 +368,20 @@ export function dispatch(state: RunState, action: GameAction): DispatchResult {
       const picked = state.draftOffers.find(c => c.id === action.cardId);
       if (!picked) return { state, events };
 
-      // 感受性チェック
+      // 容量チェックを先に（交換の場合は感受性チェックをスキップ）
+      if (state.deck.cards.length >= state.deckCapacity) {
+        return {
+          state: { ...state, phase: 'draft_discard', pendingDraftCard: picked },
+          events: [{ type: 'DRAFT_DISCARD_NEEDED', message: 'デッキが満杯。外す句を選べ。' }],
+        };
+      }
+
+      // 感受性チェック（追加の場合のみ）
       const currentEnergy = state.deck.cards.reduce((s, c) => s + c.stats.energy, 0);
       if (currentEnergy + picked.stats.energy > state.sensitivityLimit) {
         return {
           state,
           events: [{ type: 'SENSITIVITY_EXCEEDED', message: `感受性が足りない。この句（コスト${picked.stats.energy}）は受け入れられない。` }],
-        };
-      }
-
-      if (state.deck.cards.length >= state.deckCapacity) {
-        // デッキ満杯 → 捨て選択フェーズへ
-        return {
-          state: { ...state, phase: 'draft_discard', pendingDraftCard: picked },
-          events: [{ type: 'DRAFT_DISCARD_NEEDED', message: 'デッキが満杯。捨てる句を選べ。' }],
         };
       }
 
